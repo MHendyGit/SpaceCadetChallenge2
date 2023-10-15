@@ -1,7 +1,6 @@
 import java.util.ArrayList;
 
 public class SyntaxAnalyser {
-    Integer numLoops = 0;
 
     public Command analyseTokens(ArrayList<String[]> tokens) throws BBSyntaxError{
         Command command = null;
@@ -37,7 +36,6 @@ public class SyntaxAnalyser {
                                 } else {
                                     LoopData loopData = new LoopData(tokens.get(1)[0], tokens.get(3)[0]);
                                     command = new Command(value, loopData);
-                                    numLoops++;
                                 }
                             }  else throw new BBSyntaxError("while statement missing keyword do");
                         } else throw new BBSyntaxError("operator must be proceded by a literal");
@@ -45,10 +43,9 @@ public class SyntaxAnalyser {
                 } else throw new BBSyntaxError("while must be proceded by an identifier");
 
             } else if (value.equals("end")) {
-                if (numLoops > 0) {
+                if (tokens.size() == 1) {
                     command = new Command(value, "");
-                    //numLoops--; 
-                } else throw new BBSyntaxError("end statement must follow a while statement");
+                } else throw new BBSyntaxError("unexpected tokens found after keyword end");
 
             } else throw new BBSyntaxError("Cannot start statement with 'do'");
 

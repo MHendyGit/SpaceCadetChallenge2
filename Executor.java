@@ -13,7 +13,7 @@ public class Executor {
         this.syntaxAnalyser = syntaxAnalyser;
     }
 
-    public void run() throws BBSyntaxError{
+    public void run() throws BBSyntaxError, BBRuntimeError{
         Integer eof = lexer.getProgLength();
         Command command;
 
@@ -55,13 +55,18 @@ public class Executor {
         variables.put(variable, currentValue+1);
     }
 
-    private void decr(String variable) {
+    private void decr(String variable) throws BBRuntimeError{
         Integer currentValue = variables.get(variable);
         if (currentValue == null) {
             clear(variable);
             currentValue = 0;
         }
-        variables.put(variable, currentValue-1);
+        Integer newValue = currentValue-1;
+        if (newValue >= 0) {
+            variables.put(variable, newValue);
+        } else {
+            throw new BBRuntimeError("Value of "+variable+" reduced below 0");
+        }
     }
 
     private void _while(LoopData loopData) {
@@ -69,12 +74,16 @@ public class Executor {
         whileStack.push(loopData);
     }
 
-    private void end() {
-        LoopData loopData = whileStack.peek();
-        Integer currentValue = variables.get(loopData.getVariable());
-        if (currentValue != loopData.getTarget()) {
-            programCounter = loopData.getLineNo();
-        } else whileStack.pop();
+    private void end() throws BBRuntimeError {
+        if (! whileStack.empty()) {
+            LoopData loopData = whileStack.peek();
+            Integer currentValue = variables.get(loopData.getVariable());
+            if (currentValue != loopData.getTarget()) {
+                programCounter = loopData.getLineNo();
+            } else whileStack.pop();
+        } else {
+            throw new BBRuntimeError("end statement found where no loop was opened");
+        }
     }
 
     private void displayVars() {
